@@ -2,16 +2,17 @@
 <html>
 <head>
   <meta charset="utf-8"/>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/106/three.min.js"></script>
   <script src="./script.js"></script>
-  <script src="./wordset.js"></script>
-  <script src="./rank.js"></script>
   <link rel="stylesheet" href="./stylesheet.css">
 </head>
 <body>
   <div class="canvas-wrapper">
-    <canvas id="myCanvas" width="960" height="540"></canvas>
-    <canvas id="myCanvas2" width="960" height="540"></canvas>  
+    <canvas class="canvas" id="canvasStep1" width="540" height="540"></canvas>
+    <canvas class="canvas" id="canvasStep2" width="540" height="540"></canvas>  
+    <canvas class="canvas" id="canvasStep3" width="540" height="540"></canvas>
+    <canvas class="canvas" id="canvasStep4" width="540" height="540"></canvas>  
   </div>
+  <input id="button1" class="buttons" type="file" value="画像をアップロード" onChange="uploadFile(this.files)">
+  <input id="button1" type="button" value="関数を生成" onclick="generateMaster()">
 </body>
 </html>
