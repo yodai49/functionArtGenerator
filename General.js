@@ -1,5 +1,6 @@
 var myCanvas=[];
 var ctx=[];
+var vertex=[];
 
 window.addEventListener('DOMContentLoaded', function(){
     for(var i = 0;i < 4;i++) {

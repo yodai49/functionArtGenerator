@@ -15,7 +15,11 @@
     <canvas class="canvas" id="canvasStep3" width="540" height="540"></canvas>
     <canvas class="canvas" id="canvasStep4" width="540" height="540"></canvas>  
   </div>
-  <input id="button1" class="buttons" type="file" value="画像をアップロード" onChange="uploadFile(this.files)">
-  <input id="button1" type="button" value="関数を生成" onclick="generateMaster()">
+  <input id="uploadButton" class="buttons" type="file" value="画像をアップロード" onChange="uploadFile(this.files)">
+  <input id="generateButton" type="button" value="関数を生成" onclick="generateMaster()"><br>
+  <input id="switch1" type="button" value="1. 元画像" onclick="switchCanvas(0)">
+  <input id="switch2" type="button" value="2. エッジ" onclick="switchCanvas(1)">
+  <input id="switch3" type="button" value="3. グラフ" onclick="switchCanvas(2)">
+  <input id="switch4" type="button" value="4. 関数" onclick="switchCanvas(3)">
 </body>
 </html>

@@ -1,5 +1,9 @@
-function generateEdgeMaster(threshold){ // myCanvas[0]の画像をエッジ検出してmyCanvas[1]にセット
-    generateEdge(threshold);
+var imgData=ctx[0].getImageData(0,0,myCanvas[0].width,myCanvas[0].height);
+var data=imgData.data;
+
+function generateEdgeMaster(thresholdOfEdge, thresholdOfVertex){ // myCanvas[0]の画像をエッジ検出してmyCanvas[1]にセット
+    generateEdge(thresholdOfEdge);
+    detectVertex(thresholdOfVertex);
     switchCanvas(1);
 }
 
@@ -10,8 +14,6 @@ function getSquareOfEuclidDistance(d1,d2){
 }
 
 function generateEdge(threshold){
-    var imgData=ctx[0].getImageData(0,0,myCanvas[0].width,myCanvas[0].height);
-    var data=imgData.data;
     for(var i = 0;i < data.length/4;i++){
         cIndex=i*4;
         rIndex=(i+1)*4;
@@ -43,4 +45,8 @@ function generateEdge(threshold){
     }
     imgData.data=data;
     ctx[1].putImageData(imgData,0,0);
+}
+
+function detectVertex (threshold){
+
 }
