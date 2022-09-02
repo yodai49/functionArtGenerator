@@ -8,7 +8,7 @@ body{
 }
 .canvas-wrapper{
     position:relative;
-    height:540px;
+    height:600px;
     width:960px;
     left:calc(50% - 270px);
 }
@@ -18,4 +18,9 @@ body{
 }
 .buttons{
     color:#fff;
+}
+.axisValBox{
+    position:relative;
+    width:30px;
+    top:540px;
 }

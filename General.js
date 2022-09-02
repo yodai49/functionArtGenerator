@@ -17,3 +17,12 @@ function switchCanvas(canvasNum){ // switch a visible canvas
         }
     }
 }
+function resetCanvas(){ // 処理用のcanvasをリセット
+    for(var i = 0;i < 4;i++){
+        ctx[i].clearRect(0,0,myCanvas[i].width,myCanvas[i].height);
+    }
+}
+function setAxisValue(axisNum){
+    // x軸とy軸の左端と上端の値をセットする 左右上下の順番
+    axisVal[axisNum]=document.getElementById("value" + axisNum).textContent;
+}

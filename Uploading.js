@@ -1,7 +1,8 @@
 function uploadFile(files){ // 画像のアップロードボタンの処理
     var reader = new FileReader();
+    resetCanvas();
     reader.onload = function(event) {
-        var img = new Image();
+    var img = new Image();
         img.onload = function() {
             if(img.width<img.height){ //縦長
                 ctx[0].drawImage(img, 0, (img.height-img.width)/2,img.width,img.width,0,0,myCanvas[0].width,myCanvas[0].height);

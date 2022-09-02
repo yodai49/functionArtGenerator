@@ -6,6 +6,7 @@
   <script src="./Uploading.js"></script>
   <script src="./Generating.js"></script>
   <script src="./Edge1.js"></script>
+  <script src="./Vertex2.js"></script>
   <link rel="stylesheet" href="./stylesheet.css">
 </head>
 <body>
@@ -14,6 +15,10 @@
     <canvas class="canvas" id="canvasStep2" width="540" height="540"></canvas>  
     <canvas class="canvas" id="canvasStep3" width="540" height="540"></canvas>
     <canvas class="canvas" id="canvasStep4" width="540" height="540"></canvas>  
+    <input class="axisValBox" id="value0" type="input" value="-1" onChange="setAxisValue(0)">
+    <input class="axisValBox" id="value1" type="input" value="1" onChange="setAxisValue(1)">
+    <input class="axisValBox" id="value2" type="input" value="1" onChange="setAxisValue(2)">
+    <input class="axisValBox" id="value3" type="input" value="-1" onChange="setAxisValue(3)">
   </div>
   <input id="uploadButton" class="buttons" type="file" value="画像をアップロード" onChange="uploadFile(this.files)">
   <input id="generateButton" type="button" value="関数を生成" onclick="generateMaster()"><br>
