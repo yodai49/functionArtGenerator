@@ -32,7 +32,7 @@ function generateEdge(){
             x=i%myCanvas[1].width;
             y=(i-x)/myCanvas[1].width;
             ctx[1].moveTo(x,y);
-            ctx[1].arc(x,y,2,0,Math.PI);
+            ctx[1].arc(x,y,3,0,Math.PI);
         }
     }
     ctx[1].fill();

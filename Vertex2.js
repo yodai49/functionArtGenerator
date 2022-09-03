@@ -4,33 +4,62 @@ var edgeImgData;
 function generateVertexMaster(){ // myCanvas[1]の画像をベクタ化してmyCanvas[2]にセット
     imgData=ctx[1].getImageData(0,0,myCanvas[1].width,myCanvas[1].height);    
     data=imgData.data;
-    ctx[2].drawImage(myCanvas[1],0,0,myCanvas[1].width,myCanvas[1].height);
+//    ctx[2].drawImage(myCanvas[1],0,0,myCanvas[1].width,myCanvas[1].height);
     generateVertex();
-    edgeImgData=ctx[1].getImageData(0,0,myCanvas[0].width,myCanvas[0].height).data;   
-    detectLink();
-    drawLink();
+    edgeImgData=ctx[1].getImageData(0,0,myCanvas[0].width,myCanvas[0].height).data;
+    calcGradient();
+    drawGradient();
     switchCanvas(2);
 }
 
-function drawLink(){ // 連結を可視化する
-    ctx[2].lineWidth=2;
+function drawGradient(){
+    var theta;
+    ctx[2].lineWidth=1;
     ctx[2].strokeStyle="rgba(0,255,0,1)";
-    ctx[2].beginPath();
-    for(var i = 0;i < vertex.length;i++){
-        for(var j = 0;j < vertex[i].connection.length;j++){
-            if(vertex[i].connection[j] > i){
-                ctx[2].moveTo(
-                    vertex[i].x,
-                    vertex[i].y
-                );
-                ctx[2].lineTo(
-                    vertex[vertex[i].connection[j]].x,
-                    vertex[vertex[i].connection[j]].y
-                );
-            }
-        }
+    for(var i = 0; i<vertex.length;i++){
+        theta=Math.atan(vertex[i].tan);
+        ctx[2].moveTo(
+            vertex[i].x - 15 * Math.cos(theta),
+            vertex[i].y - 15 * Math.sin(theta)
+        );
+        ctx[2].lineTo(
+            vertex[i].x + 15 * Math.cos(theta),
+            vertex[i].y + 15 * Math.sin(theta),
+        );
     }
     ctx[2].stroke();
+}
+
+function calcGradient(){ //それぞれの頂点の傾きを計算する
+    var arc=[];
+    var xPos,yPos,dataPos;
+    var aveX,aveY;
+    for(var i = 0;i < arcNum;i++){ //角度をあらかじめ計算しておく
+        arc[i]={sin:Math.sin(i/arcNum*Math.PI*2),
+                cos:Math.cos(i/arcNum*Math.PI*2)}
+    }
+    for(var i = 0;i < vertex.length;i++){
+        aveX=0;
+        aveY=0;
+        for(var j = 0;j < arcNum;j++){
+            for(var k = 1;k <= radDiv;k++){
+                xPos=Math.round(vertex[i].x+k/radDiv*maxRad*arc[j].cos);
+                yPos=Math.round(vertex[i].y+k/radDiv*maxRad*arc[j].sin);
+                if(0<=xPos && xPos < myCanvas[2].width){
+                    if(0<=yPos && yPos<myCanvas[2].height){
+                        dataPos=4*(xPos+yPos*myCanvas[2].width);
+                        if(yPos<0) { // 0 < theta < pi にする
+                            xPos*=-1;
+                            yPos*=-1;
+                        }
+                        aveX+=(xPos-vertex[i].x)/k*edgeImgData[dataPos]; //平均方向を算出
+                        aveY+=(yPos-vertex[i].y)/k*edgeImgData[dataPos];
+                    }
+                }
+            }
+        }
+        vertex[i].tan=-aveX/aveY;
+    }
 }
 
 function getScore(x1,y1,x2,y2){ // 2点間の連結度合いを計算する
@@ -44,6 +73,7 @@ function getScore(x1,y1,x2,y2){ // 2点間の連結度合いを計算する
     }
     return score;
 }
+
 function makeConnection(myList,vNum){ // listの中のscoreが高い順に、vNum番目の頂点から連結する
     // listは、連結数が2以下でvNumのそばにある頂点の集合
     var firstV={num:-1,score:-1},
@@ -59,16 +89,36 @@ function makeConnection(myList,vNum){ // listの中のscoreが高い順に、vNu
             secondV.num=myList[i].num;
         }
     }
-    if(firstV.score > connectionScoreThreshold*scoreDiv){ // 頂点の連結情報を追加
+    if(firstV.score > connectionScoreThreshold*(scoreDiv+1)){ // 頂点の連結情報を追加
         vertex[vNum].connection.push(firstV.num);
         vertex[firstV.num].connection.push(vNum);
     }
-    if(secondV.score > connectionScoreThreshold*scoreDiv){
+    if(secondV.score > connectionScoreThreshold*(scoreDiv+1)){
         vertex[vNum].connection.push(secondV.num);
         vertex[secondV.num].connection.push(vNum);
     }
 }
 
+function generateVertex(){ // ベクタ化する
+    var lastY=-1; //最後に追加した頂点のY座標
+    for(var i=0;i<myCanvas[2].height;i+=skipV){
+        for(var j = 0;j < myCanvas[2].width;j+=skipH){
+            cIndex=(i*myCanvas[2].width+j)*4;
+            if(data[cIndex]>=edgeCol[0]*0.3){
+                vertex.push({x:j,y:i,connection:[]}); //頂点リストにプッシュ
+                if(lastY!=i) vertexHash[i]=vertex.length-1;
+                lastY=i;
+            }
+        }
+    }
+    ctx[2].fillStyle="rgba(255,0,0,0.8)";
+    for(var i = 0;i < vertex.length;i++){       
+        ctx[2].moveTo(vertex[i].x,vertex[i].y); 
+        ctx[2].arc(vertex[i].x,vertex[i].y,2,0,Math.PI*2);
+    }
+    ctx[2].fill();
+}
+/*
 function detectLink(){ // 頂点の中からリンクを見つける　
     //1つの頂点は最大2こと連結
     var cPos=0;
@@ -112,22 +162,23 @@ function detectLink(){ // 頂点の中からリンクを見つける　
     }
 }
 
-function generateVertex(){ // ベクタ化する
-    var lastY=-1; //最後に追加した頂点のY座標
-    for(var i=0;i<myCanvas[2].height;i+=skipV){
-        for(var j = 0;j < myCanvas[2].width;j+=skipH){
-            cIndex=(i*myCanvas[2].width+j)*4;
-            if(data[cIndex]>=edgeCol[0]*0.3){
-                vertex.push({x:j,y:i,connection:[]}); //頂点リストにプッシュ
-                if(lastY!=i) vertexHash[i]=vertex.length-1;
-                lastY=i;
+function drawLink(){ // 連結を可視化する
+    ctx[2].lineWidth=2;
+    ctx[2].strokeStyle="rgba(0,255,0,1)";
+    ctx[2].beginPath();
+    for(var i = 0;i < vertex.length;i++){
+        for(var j = 0;j < vertex[i].connection.length;j++){
+            if(vertex[i].connection[j] > i){
+                ctx[2].moveTo(
+                    vertex[i].x,
+                    vertex[i].y
+                );
+                ctx[2].lineTo(
+                    vertex[vertex[i].connection[j]].x,
+                    vertex[vertex[i].connection[j]].y
+                );
             }
         }
     }
-    ctx[2].fillStyle="rgba(255,0,0,0.8)";
-    for(var i = 0;i < vertex.length;i++){       
-        ctx[2].moveTo(vertex[i].x,vertex[i].y); 
-        ctx[2].arc(vertex[i].x,vertex[i].y,2,0,Math.PI*2);
-    }
-    ctx[2].fill();
-}
+    ctx[2].stroke();
+}*/
