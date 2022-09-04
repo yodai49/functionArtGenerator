@@ -18,6 +18,7 @@ function drawGradient(){
     ctx[2].strokeStyle="rgba(0,255,0,1)";
     for(var i = 0; i<vertex.length;i++){
         theta=Math.atan(vertex[i].tan);
+        vertex[i].atan=theta; // Function3での再計算を避けるため、保存
         ctx[2].moveTo(
             vertex[i].x - 15 * Math.cos(theta),
             vertex[i].y - 15 * Math.sin(theta)
@@ -73,7 +74,7 @@ function getScore(x1,y1,x2,y2){ // 2点間の連結度合いを計算する
     }
     return score;
 }
-
+/*
 function makeConnection(myList,vNum){ // listの中のscoreが高い順に、vNum番目の頂点から連結する
     // listは、連結数が2以下でvNumのそばにある頂点の集合
     var firstV={num:-1,score:-1},
@@ -97,7 +98,7 @@ function makeConnection(myList,vNum){ // listの中のscoreが高い順に、vNu
         vertex[vNum].connection.push(secondV.num);
         vertex[secondV.num].connection.push(vNum);
     }
-}
+}*/
 
 function generateVertex(){ // ベクタ化する
     var lastY=-1; //最後に追加した頂点のY座標
@@ -105,7 +106,7 @@ function generateVertex(){ // ベクタ化する
         for(var j = 0;j < myCanvas[2].width;j+=skipH){
             cIndex=(i*myCanvas[2].width+j)*4;
             if(data[cIndex]>=edgeCol[0]*0.3){
-                vertex.push({x:j,y:i,connection:[]}); //頂点リストにプッシュ
+                vertex.push({x:j,y:i}); //頂点リストにプッシュ
                 if(lastY!=i) vertexHash[i]=vertex.length-1;
                 lastY=i;
             }
