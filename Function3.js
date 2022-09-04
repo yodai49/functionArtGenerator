@@ -33,20 +33,43 @@ function normalizeData(keyName){ //データの標準化を行う関数
     normalizeParam[keyName].min=min;
 }
 function drawLine(){ //linesにある直線を描画する
+    var drawPoints=[];
+    var x_mY,x_MY,y_mX,y_MX; // x_mYは、yが最小の時のxの値
     for(var i =0;i < lines.length;i++){
-        
-        posInNP1=(-beta/(Math.cos(alpha)));
-        posInNP2=beta/(Math.sin(alpha));
-        ctx[2].strokeStyle="rgba(255,0,0,1)";
-        ctx[2].lineWidth=1;
-        ctx[2].beginPath();
-        ctx[2].moveTo(
-            0, (1-(posInNP1-minY)/(maxY-minY))*myCanvas[2].height
-        );
-        ctx[2].lineTo(
-            (posInNP2-minX)/(maxX-minX)*myCanvas[2].width,0
-        )
-        ctx[2].stroke();
+        drawPoints=[];
+        x_mY=(Math.cos(lines[i].alpha)*minY-lines[i].beta)/Math.sin(lines[i].alpha);
+        x_MY=(Math.cos(lines[i].alpha)*maxY-lines[i].beta)/Math.sin(lines[i].alpha);
+        y_mX=(Math.sin(lines[i].alpha)*minX+lines[i].beta)/Math.cos(lines[i].alpha);
+        y_MX=(Math.sin(lines[i].alpha)*maxX+lines[i].beta)/Math.cos(lines[i].alpha);
+        if(minX<x_mY && x_mY < maxX){
+            drawPoints.push({x:x_mY,y:minY});
+        }
+        if(minX<x_MY && x_MY < maxX){
+            drawPoints.push({x:x_MY,y:maxY});
+        }
+        if(minY<y_mX && y_mX < maxY){
+            drawPoints.push({x:minX,y:y_mX});
+        }
+        if(minY<y_MX && y_MX < maxY){
+            drawPoints.push({x:maxX,y:y_MX});
+        }
+        if(drawPoints.length>=2){
+            ctx[2].strokeStyle="rgba(255,0,0,1)";
+            ctx[2].lineWidth=1;
+            ctx[2].beginPath();
+            ctx[2].moveTo(
+                (drawPoints[0].x-minX)/(maxX-minX)*myCanvas[2].width,
+                (1-(drawPoints[0].y-minY)/(maxY-minY))*myCanvas[2].height
+            );
+            ctx[2].lineTo(
+                (drawPoints[1].x-minX)/(maxX-minX)*myCanvas[2].width,
+                (1-(drawPoints[1].y-minY)/(maxY-minY))*myCanvas[2].height
+            );
+            ctx[2].stroke();
+        } else {
+            console.log("Failed drawing line. "); // ERROR
+            console.log(lines[i],drawPoints,x_mY,x_MY,y_mX,y_MX);
+        }
     
     }
 
@@ -55,8 +78,8 @@ function drawLine(){ //linesにある直線を描画する
 function detectLine(){ // 直線を検出する
     for(var i = 0;i < vertex.length;i++){ // 投票データの抽出
         vertex[i].voteAlpha=vertex[i].atan;
-        vertex[i].voteBeta=-Math.sin(vertex[i].atan)*vertex[i].x/myCanvas[2].width*(maxX-minX)+minX
-                           +Math.cos(vertex[i].atan)*vertex[i].y/myCanvas[2].height*(maxY-minY)+minY;
+        vertex[i].voteBeta=-Math.sin(vertex[i].atan)*(vertex[i].x/myCanvas[2].width*(maxX-minX)+minX)
+                           +Math.cos(vertex[i].atan)*((1-vertex[i].y/myCanvas[2].height)*(maxY-minY)+minY);
     }
     normalizeData("voteAlpha"); // 標準化
     normalizeData("voteBeta");
@@ -67,22 +90,34 @@ function detectLine(){ // 直線を検出する
             lineVote[i][j]=0;
         }
     }
+    var votePos1,votePos2;
     for(var i = 0;i < vertex.length;i++){ // 投票
-        lineVote[Number(Math.round((vertex[i].voteAlpha-normalizeParam.voteAlpha.min)/(normalizeParam.voteAlpha.max-normalizeParam.voteAlpha.min)*(voteDiv-1)))]
-                [Number(Math.round((vertex[i].voteBeta-normalizeParam.voteBeta.min)/(normalizeParam.voteBeta.max-normalizeParam.voteBeta.min)*(voteDiv-1)))]++;
+        votePos1=Number(Math.round((vertex[i].voteAlpha-normalizeParam.voteAlpha.min)/(normalizeParam.voteAlpha.max-normalizeParam.voteAlpha.min)*(voteDiv-1)));
+        votePos2=Number(Math.round((vertex[i].voteBeta-normalizeParam.voteBeta.min)/(normalizeParam.voteBeta.max-normalizeParam.voteBeta.min)*(voteDiv-1)))
+        lineVote[votePos1][votePos2]+=4;
+        lineVote[(votePos1+1+voteDiv)%voteDiv][votePos2]+=2;
+        lineVote[(votePos1-1+voteDiv)%voteDiv][votePos2]+=2;
+        lineVote[votePos1][(votePos2+1+voteDiv)%voteDiv]+=2;
+        lineVote[votePos1][(votePos2-1+voteDiv)%voteDiv]+=2;
+        lineVote[(votePos1+1+voteDiv)%voteDiv][(votePos2+1+voteDiv)%voteDiv]+=1;
+        lineVote[(votePos1-1+voteDiv)%voteDiv][(votePos2-1+voteDiv)%voteDiv]+=1;
+        lineVote[(votePos1+1+voteDiv)%voteDiv][(votePos2+1+voteDiv)%voteDiv]+=1;
+        lineVote[(votePos1-1+voteDiv)%voteDiv][(votePos2-1+voteDiv)%voteDiv]+=1;
     }
-    var alpha,beta,nAlpha,nBeta,posInNP1,posInNP2;
+    var alpha,beta,nAlpha,nBeta;
     for(var i = 0;i < voteDiv;i++){
         for(var j = 0;j < voteDiv;j++){
-            ctx[3].fillStyle="rgba(255,0,0," + lineVote[i][j]/10 + ")";
+            ctx[3].fillStyle="rgba(255,0,0," + lineVote[i][j]/12 + ")";
             ctx[3].fillRect(i/voteDiv*myCanvas[3].width,j/voteDiv*myCanvas[3].height,myCanvas[3].width/voteDiv,myCanvas[3].height/voteDiv);
-            if(lineVote[i][j]>voteDiv*voteDiv*0.0001){ //直線検出
+            if(lineVote[i][j]>voteDiv*voteDiv*lineDetectThreshold){ //直線検出
                 nAlpha=i/(voteDiv-1)*(normalizeParam.voteAlpha.max-normalizeParam.voteAlpha.min)+normalizeParam.voteAlpha.min;
-                nBeta=i/(voteDiv-1)*(normalizeParam.voteBeta.max-normalizeParam.voteBeta.min)+normalizeParam.voteBeta.min;
+                nBeta=j/(voteDiv-1)*(normalizeParam.voteBeta.max-normalizeParam.voteBeta.min)+normalizeParam.voteBeta.min;
                 alpha=normalizeParam.voteAlpha.mean+normalizeParam.voteAlpha.s*nAlpha;
                 beta=normalizeParam.voteBeta.mean+normalizeParam.voteBeta.s*nBeta; //標準化前に戻す
                 lines.push({alpha:alpha,beta:beta});
-                console.log("pushed  (alpha,beta) = (" + posInNP1 + ", " + posInNP2 + ")");
+                console.log(nAlpha + ", " + nBeta + "," +alpha + "," + beta);
+                ctx[3].fillStyle="rgba(0,255,0,1)";
+                ctx[3].fillRect(i/voteDiv*myCanvas[3].width,j/voteDiv*myCanvas[3].height,myCanvas[3].width/voteDiv,myCanvas[3].height/voteDiv);
             }
         }
     }

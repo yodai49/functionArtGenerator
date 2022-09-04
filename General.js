@@ -5,8 +5,8 @@ var vertex=[];
 window.addEventListener('DOMContentLoaded', function(){
     minX=Number(document.getElementById("value0").value);
     maxX=Number(document.getElementById("value1").value);
-    minY=Number(document.getElementById("value2").value);
-    maxY=Number(document.getElementById("value3").value);
+    maxY=Number(document.getElementById("value2").value);
+    minY=Number(document.getElementById("value3").value);
     for(var i = 0;i < 4;i++) {
         myCanvas[i]= this.document.getElementById("canvasStep" + (i+1));
         ctx[i]=myCanvas[i].getContext("2d");
