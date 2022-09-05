@@ -1,7 +1,7 @@
 function generateFunctionMaster(){
-    detectLine(); // 直線
-}
-
-function detectLine(){ //直線を検出する関数
-
+    detectLine();
+    adjustLine();
+    drawLineToPicture(1);
+    detectLineSegments();
+    detectEllipse();
 }
