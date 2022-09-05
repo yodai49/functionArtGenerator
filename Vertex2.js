@@ -35,7 +35,6 @@ function drawGradient(){
 function calcGradient(){ //それぞれの頂点の傾きを計算する
     var arc=[];
     var xPos,yPos,dataPos;
-    var aveX1,aveY1,aveX2,aveY2;
     var maxTheta,maxThetaVal=-1;
     var tanVote=0, avePerTheta=0;
     for(var i = 0;i < arcNum;i++){ //角度をあらかじめ計算しておく
@@ -71,18 +70,6 @@ function calcGradient(){ //それぞれの頂点の傾きを計算する
     }
 }
 
-function getScore(x1,y1,x2,y2){ // 2点間の連結度合いを計算する
-    var score=0;
-    for(var i = 0; i <= scoreDiv;i++){
-        checkX=(x1*i+x2*(scoreDiv-i))/scoreDiv;
-        checkY=(y1*i+y2*(scoreDiv-i))/scoreDiv;
-        if(edgeImgData[(checkY*myCanvas[2].width+checkX)*4]>=edgeCol[0]*addScoreThreshold){
-            score++;
-        }
-    }
-    return score;
-}
-
 function generateVertex(){ // ベクタ化する
     var lastY=-1; //最後に追加した頂点のY座標
     for(var i=0;i<myCanvas[2].height;i+=skipV){
@@ -94,11 +81,5 @@ function generateVertex(){ // ベクタ化する
                 lastY=i;
             }
         }
-    }/*
-    ctx[2].fillStyle="rgba(255,0,0,0.8)";
-    for(var i = 0;i < vertex.length;i++){       
-        ctx[2].moveTo(vertex[i].x,vertex[i].y); 
-        ctx[2].arc(vertex[i].x,vertex[i].y,2,0,Math.PI*2);
     }
-    ctx[2].fill();*/
 }
