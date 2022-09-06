@@ -2,6 +2,7 @@ function drawGraphMaster(){
     drawBaseElements();
     drawLineSegments();
     switchCanvas(3);
+    drawArcs();
 }
 
 function drawBaseElements(){ // 背景と軸の描画
@@ -54,6 +55,25 @@ function drawLineSegments(){ // lineSegmentsにある線分を描画する
             ctx[3].moveTo(getXPos(drawPoints[0].x),getYPos(drawPoints[0].y));
             ctx[3].lineTo(getXPos(drawPoints[1].x),getYPos(drawPoints[1].y));    
         }
+    }
+    ctx[3].stroke();
+}
+
+function drawArcs(){
+    ctx[3].lineWidth=3;
+    ctx[3].strokeStyle="rgba(0,0,0,1)";
+    ctx[3].beginPath();
+    for(var i = 0;i < Objects.arcs.length;i++){
+        ctx[3].moveTo(
+            getXPos(Objects.arcs[i].x)+(Math.abs(getXPos(Objects.arcs[i].r)-getXPos(0)))*Math.cos(Objects.arcs[i].theta1),
+            getYPos(Objects.arcs[i].y)+(Math.abs(getYPos(Objects.arcs[i].r)-getYPos(0)))*Math.sin(Objects.arcs[i].theta1));
+        ctx[3].ellipse(
+            getXPos(Objects.arcs[i].x),
+            getYPos(Objects.arcs[i].y),
+            Math.abs(getXPos(Objects.arcs[i].r)-getXPos(0)),
+            Math.abs(getYPos(Objects.arcs[i].r)-getYPos(0)),
+            0,
+            Objects.arcs[i].theta1, Objects.arcs[i].theta2)
     }
     ctx[3].stroke();
 }

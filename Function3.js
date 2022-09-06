@@ -3,5 +3,7 @@ function generateFunctionMaster(){
     adjustLine();
     drawLineToPicture(1);
     detectLineSegments();
-    detectEllipse();
+    detectArc();
+//    adjustArc();
+    drawArcsToPicture();
 }

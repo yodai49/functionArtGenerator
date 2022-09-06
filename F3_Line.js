@@ -1,5 +1,4 @@
 var lineVote=[];
-var normalizeParam=[];
 
 function drawLineToPicture(canvasNum){ //linesにある直線をキャンバスへ描画する
     var drawPoints=[];
@@ -98,28 +97,36 @@ function getScoreOfLineSeg(x1,y1,x2,y2,d){ // 2点間の連結情報を返す d�
     var score=0, regInterval=0;
     var minColThreshold=125; // 白いと判定する閾値
     var grad=(y2-y1)/(x2-x1);
-    var xPos,yPos,lMax;
-    var dataPos;
+    var xPos,yPos,lMax,atan=Math.atan(grad);
+    var vecX,vecY;
+    var mySin=Math.sin(atan),myCos=Math.cos(atan);
+    var dataPos, innnerProduct,cosTheta;
     var myData=[];
     if(Math.abs(grad)>1){ // yを基準に考える
-        regInterval=Math.abs(d*Math.sin(Math.atan(grad)));
+        regInterval=Math.abs(d*mySin);
         lMax=Math.floor(Math.abs((y2-y1)/regInterval));
     } else { // xを基準に考える
-        regInterval=Math.abs(d*Math.cos(Math.atan(grad)));
+        regInterval=Math.abs(d*myCos);
         lMax=Math.floor(Math.abs((x2-x1)/regInterval));
     }
     for(var i = 0;i <= lMax;i++){
         xPos=Math.round(x1+i/lMax*(x2-x1));
         yPos=Math.round(y1+i/lMax*(y2-y1));
+//        vecX=Math.round(xPos/myCanvas[2].width*vecDiv);
+//        vecY=Math.round(yPos/myCanvas[2].height*vecDiv);
         if(0<=xPos && xPos < myCanvas[2].width){
             if(0 <= yPos && yPos<myCanvas[2].height){
                 dataPos=4*(xPos+(yPos*myCanvas[2].width));
+                myData[i]=0;
                 if(edgeImgData[dataPos]>=minColThreshold){
                     score++;
                     myData[i]=1;
-                } else {
-                    myData[i]=0;
                 }
+/*                innnerProduct=myCos*vec[vecX][vecY].x+mySin*vec[vecX][vecY].y;
+                if(innnerProduct>0.3){
+                    score++;
+                    myData[i]=1;
+                }*/
             }
         }
     }
