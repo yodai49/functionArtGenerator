@@ -51,12 +51,16 @@ function detectArc(){
     unifyCenterOfArcs();
     listUpCenterOfArcs();
     searchRadOfArcs();
+    drawCenterOfArcs(2);
+}
+
+function drawCenterOfArcs(canvasNum){
     for(var i = 0;i < voteDivArc;i++){
         for(var j = 0;j < voteDivArc;j++){
             if(arcVote[i][j]!=0) {
                 arcVote[i][j]=1;
-                ctx[2].fillStyle="rgba(255,255,0,1)";
-                ctx[2].fillRect(i/voteDivArc*myCanvas[3].width,(voteDivArc-j)/voteDivArc*myCanvas[3].height,myCanvas[3].width/voteDivArc,myCanvas[3].height/voteDivArc);
+                ctx[canvasNum].fillStyle="rgba(255,255,0,1)";
+                ctx[canvasNum].fillRect(i/voteDivArc*myCanvas[3].width,(voteDivArc-j)/voteDivArc*myCanvas[3].height,myCanvas[3].width/voteDivArc,myCanvas[3].height/voteDivArc);
             } else {
                 arcVote[i][j]=0;
             }
@@ -157,6 +161,7 @@ function searchRadOfArcs(){ // 円の半径を調べる
     var scoreListByRad=[];
     var pushListR=[];
     var pushListA=[];
+    var pushArc;
     ctx[2].strokeStyle="rgba(255,255,0,1)";
     for(var i = 0;i < centerOfArcs.length;i++){
         scoreListByRad=[];
@@ -185,10 +190,11 @@ function searchRadOfArcs(){ // 円の半径を調べる
                     r: Math.abs(getXCrd(pushListR[j])-getXCrd(0)), theta1:0, theta2:Math.PI*2
                 }).data, Math.abs(getXCrd(pushListR[j])-getXCrd(0)));
             for(var k = 0;k < pushListA.length;k++){
-                Objects.arcs.push({
+                pushArc={
                     x: getXCrd(centerOfArcs[i].x), y: getYCrd(centerOfArcs[i].y),
-                    r: Math.abs(getXCrd(pushListR[j])-getXCrd(0)), theta1:pushListA[k].theta1, theta2:pushListA[k].theta2
-                })
+                    r: Math.abs(getXCrd(pushListR[j])-getXCrd(0)), theta1:pushListA[k].theta1, theta2:pushListA[k].theta2}
+                Objects.arcs.push(pushArc);
+                eraseDetectedArc(pushArc);
             }
         }
     }
@@ -200,7 +206,8 @@ function getPushListRad(data){ // 円を検出する半径のリストを返す 
             flg=1;
         } else { //減少時
             if(flg==1){ //　極大値なのでプッシュ
-                if((data[i-1].r+data[i].r)/2>minArcRadThreshold) tempList.push((data[i-1].r+data[i].r)/2);
+                if((data[i-1].r+data[i].r)/2>minArcRadThreshold && 
+                    data[i].score>minArcScoreThreshold) tempList.push((data[i-1].r+data[i].r)/2);
             }
             flg=-1;
         }
@@ -218,9 +225,6 @@ function getPushList(data,r){ // dataのうち円弧に相当する部分を角�
         data[i]=Math.floor(data[i]);
         data[i]=Math.min(1,data[i]);
     }
-/*    for(var i = 1;i < data.length-1;i++){
-        if(data[i-1]==1 && data[i]==0 && data[i+1]==1) data[i]=1; //101は111にする
-    }*/
     for(var i = 0;i < data.length;i++){
         if(data[i]==0 && initialBlank==-1) initialBlank=i; //　最初の空白を探索
     }
@@ -285,12 +289,10 @@ function drawArcsToPicture(){
         ctx[1].moveTo(
             getXPos(Objects.arcs[i].x)+(Math.abs(getXPos(Objects.arcs[i].r)-getXPos(0)))*Math.cos(Objects.arcs[i].theta1),
             getYPos(Objects.arcs[i].y)+(Math.abs(getYPos(Objects.arcs[i].r)-getYPos(0)))*Math.sin(Objects.arcs[i].theta1));
-        ctx[1].ellipse(
+        ctx[1].arc(
             getXPos(Objects.arcs[i].x),
             getYPos(Objects.arcs[i].y),
             Math.abs(getXPos(Objects.arcs[i].r)-getXPos(0)),
-            Math.abs(getYPos(Objects.arcs[i].r)-getYPos(0)),
-            0,
             Objects.arcs[i].theta1, Objects.arcs[i].theta2
         )
     }

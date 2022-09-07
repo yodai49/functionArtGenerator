@@ -1,8 +1,9 @@
 function drawGraphMaster(){
     drawBaseElements();
     drawLineSegments();
-    switchCanvas(3);
     drawArcs();
+    drawPolynomials();
+    switchCanvas(3);
 }
 
 function drawBaseElements(){ // 背景と軸の描画
@@ -76,4 +77,59 @@ function drawArcs(){
             Objects.arcs[i].theta1, Objects.arcs[i].theta2)
     }
     ctx[3].stroke();
+}
+
+function drawPolynomials(){
+    var val1,val2,val1Base;
+    var posX,posY,initialFlg=0,initialPos,terminalPos,temp;
+    ctx[3].lineWidth=3;
+    ctx[3].strokeStyle="rgba(0,0,0,1)";
+    for(var i = 0;i < Objects.polynomials.length;i++){
+        ctx[3].beginPath();
+        initialFlg=1;
+        if(Objects.polynomials[i].isRev){
+            initialPos=getYPos(Objects.polynomials[i].m);
+            terminalPos=getYPos(Objects.polynomials[i].M);
+        } else {
+            initialPos=getXPos(Objects.polynomials[i].m);
+            terminalPos=getXPos(Objects.polynomials[i].M);
+        }
+        if(initialPos>terminalPos){
+            temp=initialPos;
+            initialPos=terminalPos;
+            terminalPos=temp;
+        }
+        initialPos=Math.floor(initialPos);
+        terminalPos=Math.ceil(terminalPos);
+        terminalPos =Math.min(myCanvas[3].width-1,Math.min(myCanvas[3].height-1),terminalPos);
+        for(var j = initialPos;j <= terminalPos;j++){ //キャンバスは縦横が等しいものとする
+            if(Objects.polynomials[i].isRev){
+                val1Base=getYCrd(j);
+            } else {
+                val1Base=getXCrd(j);
+            }
+            val2=0;
+            val1=1;
+            for(var k = 0;k < Objects.polynomials[i].w.length;k++){
+                val2+=Objects.polynomials[i].w[k]*val1;
+                val1*=val1Base;
+            }
+            if(Objects.polynomials[i].isRev){
+                posX=getXPos(val2);
+                posY=getYPos(val1Base);
+            } else {
+                posX=getXPos(val1Base);
+                posY=getYPos(val2);
+            }
+            posX=Math.max(-myCanvas[3].width,Math.min(myCanvas[3].width*2,posX)); // 極端な値を補正
+            posY=Math.max(-myCanvas[3].height,Math.min(myCanvas[3].height*2,posY));
+            if(initialFlg) {
+                initialFlg=0;
+                ctx[3].moveTo(posX,posY);
+            } else {
+                ctx[3].lineTo(posX,posY);
+            }
+        }
+        ctx[3].stroke();
+    }
 }

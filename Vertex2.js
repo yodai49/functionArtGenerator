@@ -90,8 +90,8 @@ function calcGradient(){ //それぞれの頂点の傾きを計算し、ベク�
                     vecD=Math.sqrt(j*j+k*k);
                     vecD=Math.max(1,vecD);
                     if(0<=vecX&&vecX<vecDiv && 0<=vecY && vecY<vecDiv){ // 領域内部にあったら
-                        vec[vecX][vecY].x+=Math.cos(vertex[i].atan)/Math.pow(vecD,0.8);
-                        vec[vecX][vecY].y+=Math.sin(vertex[i].atan)/Math.pow(vecD,0.8);
+                        vec[vecX][vecY].x+=Math.cos(vertex[i].atan)/vecD;
+                        vec[vecX][vecY].y+=Math.sin(vertex[i].atan)/vecD;
                     }
                 }
             }

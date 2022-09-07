@@ -12,7 +12,7 @@ var addScoreThreshold = 0.3;// 2 2点間のスコアを加算する時の、エ�
 var arcNum=90;              // 2 傾き検出の際の角度の分割
 var radDiv=30;              // 2 傾き検出の際の半径の分割
 var maxRad=30;              // 2 傾き検出の際の投票を取る最大の半径
-var powerThreshold=1;     // 2 傾きの有効データとなる最低power
+var powerThreshold=0.5;     // 2 傾きの有効データとなる最低power
 
 var vecDiv=270;             // 3 ベクトル場の分割数(1次元あたり)
 var vecHW=10;               // 3 ベクトル場に影響する上下左右のマス目数
@@ -27,19 +27,24 @@ var lineSegLengthMin=60;    // 3 検出される線分の最小の長さ
 var voteDivArc=200;         // 3 円の中心を検出する際の分割数(1次元あたり)
 var arcDetectThreshold=0.75;// 3 円の中心候補時の最大得票数に占める割合
 var arcUnifyWH=10;          // 3 円の中心候補を統合する際の幅 （実際には前後左右で2倍ずつの領域で統合される）
-var arcMinLength=150;       // 3 円弧の検出下限長さ
-var arcMinRatio=0.5;        // 3 円弧の検出下限割合　検出下限長さの条件といずれかを満たせばよい
-var arcMinLengthRequired=50;// 3 円弧の最低長さ（これを満たさないと検出されない）
-var arcNumAD=360;            // 3 円検出時の角度の分割数
+var minArcScoreThreshold=0.5;  // 3 円の半径として検出されるための最低スコア
+var arcMinLength=100;       // 3 円弧の検出下限長さ
+var arcMinRatio=0.8;        // 3 円弧の検出下限割合　検出下限長さの条件といずれかを満たせばよい
+var arcMinLengthRequired=40;// 3 円弧の最低長さ（これを満たさないと検出されない）
+var arcNumAD=360;           // 3 円検出時の角度の分割数
 var radSpacingAD=5;         // 3 円検出時の半径の分割間隔
-var minArcRadThreshold =60; // 3 円検出時の最小半径
-var adjustArcParam={rep:4,r:0.05,center:0.05, radDiv:5, centerDiv:10};
+var minArcRadThreshold =50; // 3 円検出時の最小半径
+//var adjustArcParam={rep:0,r:0.001,center:0.001, radDiv:5, centerDiv:5};
                             // 3 円の中心や半径を微調整する回数など // centerDiv*centerDiv*radDiv*8 回計算するので注意
 
+var approximateBeginThreshold=0.1; // 3 点集合の検出を開始する時のvecの大きさの最低値
+var approximateSpacing=10;   // 3 点集合を検出する際の点の間隔
+
 var Objects={ // 描画する図形の一覧
-    lines:[], //        直線　{alpha:--, beta:--}                   xsinα-ycosα+β=0
-    lineSegments:[], // 線分　{alpha:--, beta:--, pos:{mx:--, Mx:--}}   式はlinesと同じ、xmからxMまでを図示する（myとMyも可能、どちらもある場合はxが優先）
-    arcs:[],         // 円　 {x:--, y:--, r:--, theta1:--, theta2:--}   theta1<theta<theta2の範囲を描く 
+    lines:[], //        直線　   {alpha:--, beta:--}                   xsinα-ycosα+β=0 最後には格納されていないはず
+    lineSegments:[], // 線分　   {alpha:--, beta:--, pos:{mx:--, Mx:--}}   式はlinesと同じ、xmからxMまでを図示する（myとMyも可能、どちらもある場合はxが優先）
+    arcs:[],         // 円　     {x:--, y:--, r:--, theta1:--, theta2:--}   theta1<theta<theta2の範囲を描く 
+    polynomials: []  // 多項関数　{isRev:0or1, w:[0,1,0,...],m:--, M:--}     (isRevが0のとき) y = w[0] + x * w[1] + x^2 * w[2] + ... (m<=x<=M)
 };
 var normalizeParam=[];
 var vec=[];
