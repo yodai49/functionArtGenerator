@@ -3,5 +3,12 @@ function generateFunctionMaster(){
     adjustLine();
     drawLineToPicture(1);
     detectLineSegments();
-    detectEllipse();
+    eraseDetectedElements();
+    detectArc();
+    drawArcsToPicture();
+    eraseDetectedElements();
+    drawVec();
+    approximateVec();
+    analyzeByMRMaster();
+    adjustApproximate();
 }

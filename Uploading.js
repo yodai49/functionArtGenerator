@@ -1,6 +1,8 @@
 function uploadFile(files){ // 画像のアップロードボタンの処理
     var reader = new FileReader();
+    if(files.length!=1) return;
     resetCanvas();
+    setGeneralStatus(1);
     reader.onload = function(event) {
     var img = new Image();
         img.onload = function() {
@@ -13,5 +15,6 @@ function uploadFile(files){ // 画像のアップロードボタンの処理
         img.src = event.target.result;
     }
     reader.readAsDataURL(files[0]);
+    document.getElementById("generateButton").disabled=false;
     switchCanvas(0);
 }

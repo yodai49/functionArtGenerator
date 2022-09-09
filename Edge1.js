@@ -17,6 +17,7 @@ function getSquareOfEuclidDistance(d1,d2){
 function generateEdge(){
     ctx[1].clearRect(0,0,myCanvas[1].width,myCanvas[1].height);
     ctx[1].fillStyle="rgba(255,255,255,1)";
+    ctx[1].beginPath();
     for(var i = 0;i < data.length/4;i++){
         cIndex=i*4;
         rIndex=(i+1)*4;
@@ -33,6 +34,10 @@ function generateEdge(){
             y=(i-x)/myCanvas[1].width;
             ctx[1].moveTo(x,y);
             ctx[1].arc(x,y,3,0,Math.PI);
+        } else {
+            data[cIndex]=0;
+            data[cIndex+1]=0;
+            data[cIndex+2]=0;
         }
     }
     ctx[1].fill();
