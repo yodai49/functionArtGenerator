@@ -36,8 +36,9 @@ var langList=[  {name:"loadImg",isVal:0,content:["画像読込","Upload"]},
                                               "You can generate function art from your preferred picture using this tool."]},
                 {name:"exp2",isVal:0,content:["画像によっては、関数アートの生成に数十秒かかることがあります。", 
                                               "Generating process may take about half a minute."]},
-                {name:"exp3",isVal:0,content:["関数アートの生成に用いている技術は<a href=\"./tech.html\">こちら</a>をご覧ください。", 
-                                              "If you are interested in the technology of this tool, visit <a href=\"./tech.html\">here</a>."]}]
+//                {name:"exp3",isVal:0,content:["関数アートの生成に用いている技術は<a href=\"./tech.html\">こちら</a>をご覧ください。", 
+//                                              "If you are interested in the technology of this tool, visit <a href=\"./tech.html\">here</a>."]}
+            ]
 
                 
 
