@@ -5,10 +5,10 @@ function generateFunctionMaster(){
     detectLineSegments();
     eraseDetectedElements();
     detectArc();
-//    adjustArc();
     drawArcsToPicture();
     eraseDetectedElements();
     drawVec();
     approximateVec();
     analyzeByMRMaster();
+    adjustApproximate();
 }

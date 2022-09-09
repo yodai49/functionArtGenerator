@@ -1,6 +1,16 @@
 <!DOCTYPE html>
-<html>
+<?xml version="1.0" encoding="Shift_JIS"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ja" xml:lang="ja">
 <head>
+  <meta http-equiv="Content-Type" content="Shift_JIS">
+  <meta http-equiv="Content-Style-Type" content="text/css">
+  <meta http-equiv="Content-Script-Type" content="text/javascript">
+  <meta name="keywords" content="関数アート‚関数‚数学‚グラフ‚アート">
+  <meta name="description" content="関数アートジェネレーターは、誰でも手軽にお好きな画像から関数アートを自動生成できるツールです。画像認識技術やAI技術を活用して、あなただけの関数アートを作成しましょう。">
+  <meta name="robots" content="index, follow">
+  <meta name="revisit-after" content="1 days">
+  <meta name="author" content="toruthi">
   <meta charset="utf-8"/>
   <script src="./General.js"></script>
   <script src="./Uploading.js"></script>
@@ -13,24 +23,107 @@
   <script src="./F3_Erase.js"></script>
   <script src="./F3_Approximate.js"></script>
   <script src="./Graph4.js"></script>
+  <script src="./edit.js"></script>
+  <script src=' https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=default' async></script>
   <link rel="stylesheet" href="./stylesheet.css">
+  <link rel="apple-touch-icon" type="image/png" href="/apple-touch-icon-180x180.png">
+  <link rel="icon" href="favicon.ico">
+  <title>関数アートジェネレーター｜Fuction Art Generator</title>
 </head>
 <body>
-  <div class="canvas-wrapper">
-    <canvas class="canvas" id="canvasStep1" width="540" height="540"></canvas>
-    <canvas class="canvas" id="canvasStep2" width="540" height="540"></canvas>  
-    <canvas class="canvas" id="canvasStep3" width="540" height="540"></canvas>
-    <canvas class="canvas" id="canvasStep4" width="540" height="540"></canvas>  
-    <input class="axisValBox" id="value0" type="input" value="-1" onChange="setAxisValue(0)">
-    <input class="axisValBox" id="value1" type="input" value="1" onChange="setAxisValue(1)">
-    <input class="axisValBox" id="value2" type="input" value="1" onChange="setAxisValue(2)">
-    <input class="axisValBox" id="value3" type="input" value="-1" onChange="setAxisValue(3)">
+  <div class="header">
+    <div class="headerText">
+      <img src="./logo.png" class="logo">
+      <div class="lang jp" onclick="changeLang(0)">JPN</div>
+      <div class="lang slash">/</div>
+      <div class="lang en" onclick="changeLang(1)">ENG</div>
+    </div>
   </div>
-  <input id="uploadButton" class="buttons" type="file" value="画像をアップロード" onChange="uploadFile(this.files)">
-  <input id="generateButton" type="button" value="関数を生成" onclick="generateMaster()"><br>
-  <input id="switch1" type="button" value="1. 元画像" onclick="switchCanvas(0)">
-  <input id="switch2" type="button" value="2. エッジ" onclick="switchCanvas(1)">
-  <input id="switch3" type="button" value="3. グラフ" onclick="switchCanvas(2)">
-  <input id="switch4" type="button" value="4. 関数" onclick="switchCanvas(3)">
+  <div class="main-wrapper">
+    <div class="canvas-wrapper">
+      <canvas class="canvas" id="canvasStep1" width="540" height="540"></canvas>
+      <canvas class="canvas" id="canvasStep2" width="540" height="540"></canvas>  
+      <canvas class="canvas" id="canvasStep3" width="540" height="540"></canvas>
+      <canvas class="canvas" id="canvasStep4" width="540" height="540"></canvas>  
+    </div>
+    <div class="mainButtonWrapper">
+      <label class="mainButtons uploadButtonLabel">
+        <input id="uploadButton" class="fileUploadFile" type="file" onChange="uploadFile(this.files)" accept="image/*">
+        <div id="loadImg"></div>
+      </label>
+      <input id="generateButton" class="generateButton mainButtons" type="button" value="" onclick="generateMaster()" disabled>
+      <div class="switchButtonsList">
+        <input id="switch1" class="switchButtons" type="button" value="" onclick="switchCanvas(0)">
+        <input id="switch4" class="switchButtons" type="button" value="" onclick="switchCanvas(3)">  
+      </div>
+      <div class="progressText dn" id="progressText1"></div>
+      <div class="progressText dn" id="progressText2"></div>
+      <div class="progressText dn" id="progressText3"></div>
+      <div class="progressText dn" id="progressText4"></div>
+      <div class="spinner-box" id="stoppingCircle">
+        <div class="circle-border circle-border-stop">
+          <div class="circle-core"></div>
+        </div>
+      </div>
+      <div class="spinner-box">
+        <div class="circle-border circle-border-moving">
+          <div class="circle-core"></div>
+        </div>  
+      </div>
+      <div class="howto">
+        <div id="howtoTitle" class="howtoTitle"></div>
+        <ol class="howtoOL">
+          <li id="howto1" class="howtoLI"></li>
+          <li id="howto2" class="howtoLI"></li>
+        </ol>
+      </div>
+    </div>
+    <div class="subButtonWrapper">
+      <input id="changeSelect" disabled class="buttons mnpBtn1" type="button" value="" onclick="selectAll(0)">
+      <input id="deleteFunctionButton" disabled class="buttons mnpBtn2" type="button" value="" onclick="deleteFunction()">
+      <input id="downloadGraphButton" disabled class="buttons mnpBtn3" type="button" value="" onclick="downloadGraph()"><br>
+      <select name="example" size="15" id="functionsList" class="functionList" multiple onchange="refreshListSelect()">
+      </select>
+      <div class="functionData">
+        <div id="data11" class="datah1 datav1">---</div>
+        <div id="data21" class="datah1 datav2">---</div>
+        <div id="data31" class="datah1 datav3">---</div>
+        <div id="data41" class="datah1 datav4">---</div>
+        <div id="data51" class="datah1 datav5">---</div>
+        <div id="data61" class="datah1 datav6">---</div>
+        <div id="data71" class="datah1 datav7">---</div>
+        <div id="data12" class="datah2 datav1">---</div>
+        <div id="data22" class="datah2 datav2">---</div>
+        <div id="data32" class="datah2 datav3">---</div>
+        <div id="data42" class="datah2 datav4">---</div>
+        <div id="data52" class="datah2 datav5">---</div>      
+        <div id="data62" class="datah2 datav6">---</div>
+        <div id="data72" class="datah2 datav7">---</div>
+        <input type="button" id="button1" onclick="changeColor(0)" class="colButton cb1">
+        <input type="button" id="button2" onclick="changeColor(1)" class="colButton cb2">
+        <input type="button" id="button3" onclick="changeColor(2)" class="colButton cb3">
+        <input type="button" id="button4" onclick="changeColor(3)" class="colButton cb4">
+        <input type="button" id="button5" onclick="changeColor(4)" class="colButton cb5">
+        <input type="button" id="button6" onclick="changeColor(5)" class="colButton cb6">
+        <input type="button" id="button7" onclick="changeColor(6)" class="colButton cb7">
+        <input type="button" id="button8" onclick="changeColor(7)" class="colButton cb8">
+      </div>
+      
+      <div class="equation">
+        <div id="otherFunction" class="otherFunction"></div>
+        <div id="equation">
+          <!-- ここに数式が入る　-->
+        </div>
+      </div>
+    </div>
+    <div class="expText">
+        <div id="exp1"></div>
+        <div id="exp2"></div>
+        <div id="exp3"></div>
+    </div>
+  </div>
+  <div class="footer">Copyright © 2022- toruthi All Rights Reserved.</div>
+  <!--  <input id="switch2" type="button" value="2. エッジ" onclick="switchCanvas(1)">
+  <input id="switch3" type="button" value="3. グラフ" onclick="switchCanvas(2)">-->
 </body>
 </html>

@@ -1,11 +1,11 @@
-    // 残りのvecを、その場の傾きを利用しながらいくつかのグループに分ける
-    // 最適なものを採用して、vecを消去
-    // これを繰り返す
-    // それぞれのグループを2次関数(x=,y=の形それぞれで試す)や3次関数でフィッティング
+// 残りのvecを、その場の傾きを利用しながらいくつかのグループに分ける
+// 最適なものを採用して、vecを消去
+// これを繰り返す
+// それぞれのグループを2次関数(x=,y=の形それぞれで試す)や3次関数でフィッティング
 
 var apprxGroupList=[]; // グループ化して近似する点の集合 [[{x:--, y:--},{x:--, y:--},]] の形式で格納していく
 var apprxEraseHW=5;
-var searchedList;
+var progressRatio=0;
 
 function approximateVec(){
     var x,y,r2; // r2はx^2+y^2  xとyはピクセル単位
@@ -22,7 +22,7 @@ function approximateVec(){
                 if(edgeImgData[dataPos]>thresholdOfEdge){ // エッジかつ傾きありなら
                     apprxGroupList[currentGroupNum]=[];
                     apprxGroupList[currentGroupNum].push({ // 初めの点をプッシュ
-                        x:x, y:y, tan:vec[i][j].y/vec[i][j].x
+                        x:x, y:y
                     });
                     apprxGroupList[currentGroupNum]=apprxGroupList[currentGroupNum].concat( // そのままの向き
                         searchApprxGroup(x,y,x+approximateSpacing*vec[i][j].x/Math.sqrt(r2),
@@ -48,14 +48,14 @@ function searchApprxGroup(x1,y1,x2,y2,depth){ // (x1,y1)から(x2,y2)の方向�
     var d=approximateSpacing;
     var x,y,dataPos;
     var vecX,vecY,tan,atan;
-    var edgeX=0,edgeY=0;
+    var edgeX,edgeY;
     var theta,midTheta=Math.atan((y2-y1)/(x2-x1));
     if(x2-x1<0 && Math.cos(midTheta>0)) midTheta+=Math.PI;
     var searchApprxRadDiv=32; //　左右それぞれをこの個数に分割する
     var searchApprxRadRange=Math.PI/3.5; // 左右に、それぞれこの範囲を探索する
     var maxTheta,maxThetaVal=-1,tempScore;
     var tempList=[];
-    if(depth>30) return [];
+    if(depth>10) return [];
     ctx[2].fillStyle="rgba(255,255,255,1)";
     ctx[2].fillRect(x1,y1,2,2);
     ctx[2].fillStyle="rgba(255,0,0,1)";
@@ -141,12 +141,12 @@ function drawApprxGroups(){ // 近似のグループを可視化する
     }
 }
 
-var maxDim=8; // 多項式の次数の最大数+1
-
-function analyzeByMRMaster(){ // 重回帰分析の呼び出しを行う
+async function analyzeByMRMaster(){ // 重回帰分析の呼び出しを行う 
     var dataSet=[];// {x:--, y:--, xs:[], ys:[]}の形式
     var xs=[],ys=[];
+    var divApprx=[];
     for(var i = 0;i < apprxGroupList.length;i++){
+        progressRatio=Math.max(progressRatio,i/(apprxGroupList.length-1));
         dataSet=[];
         for(var j = 0;j < apprxGroupList[i].length;j++){ // データを加工して、回帰の準備
             xs[0]=1;
@@ -155,23 +155,69 @@ function analyzeByMRMaster(){ // 重回帰分析の呼び出しを行う
                 xs[k]=xs[k-1]*getXCrd(apprxGroupList[i][j].x);
                 ys[k]=ys[k-1]*getYCrd(apprxGroupList[i][j].y);
             }
-            dataSet[j]=
+            dataSet.push(
                 {
                     x: getXCrd(apprxGroupList[i][j].x),
                     y: getYCrd(apprxGroupList[i][j].y),
                     xs: JSON.parse(JSON.stringify(xs)),
                     ys: JSON.parse(JSON.stringify(ys))
-                }
+                });
         }
-        apprxGroupList[i].mr=analyzeByMR(dataSet);
-        Objects.polynomials.push({
-            isRev:apprxGroupList[i].mr.isRev,
-            w:apprxGroupList[i].mr.w,
-            m:searchEdgeVal(apprxGroupList[i],0,apprxGroupList[i].mr.isRev),
-            M:searchEdgeVal(apprxGroupList[i],1,apprxGroupList[i].mr.isRev)
-        })
+        apprxGroupList[i].mr=analyzeByMR(dataSet); 
+        if(apprxGroupList[i].mr.score< apprxDivScoreThreshold){
+            // 残差が一定以上だったら、xとyの差が大きい方で、中央値を境に分割して再び近似を試す
+            divApprx=JSON.parse(JSON.stringify(divideApprxGroup(apprxGroupList[i])));
+            if(apprxGroupList.length<100){
+                if(divApprx[0].length>2) apprxGroupList.push(divApprx[0]);
+                if(divApprx[1].length>2) apprxGroupList.push(divApprx[1]);    
+            }
+        } else {
+            Objects.polynomials.push({
+                isRev:apprxGroupList[i].mr.isRev,
+                w:apprxGroupList[i].mr.w,
+                m:searchEdgeVal(apprxGroupList[i],0,apprxGroupList[i].mr.isRev),
+                M:searchEdgeVal(apprxGroupList[i],1,apprxGroupList[i].mr.isRev)
+            })    
+        }
     }
 }
+
+function divideApprxGroup(apprxGroup){
+    // apprxGroupを受け取り、二つに分割した上でその配列を返す関数
+    var tempList=[[],[]];
+    var myXMax=-9999,myXMin=9999,myYMax=-9999,myYMin=9999;
+    var isY,myThreshold;
+    for(var i =0;i < apprxGroup.length;i++){
+        if(apprxGroup[i].x>myXMax) myXMax=apprxGroup[i].x;
+        if(apprxGroup[i].x<myXMin) myXMin=apprxGroup[i].x;
+        if(apprxGroup[i].y>myYMax) myYMax=apprxGroup[i].y;
+        if(apprxGroup[i].y<myYMin) myYMin=apprxGroup[i].y;
+    }
+    isY=1;
+    if(Math.abs(myXMax-myXMin)>Math.abs(myYMax-myYMin)) isY=0;
+    if(isY) {
+        myThreshold=(myYMax+myYMin)/2;
+    } else {
+        myThreshold=(myXMax+myXMin)/2;
+    }
+    for(var i = 0;i < apprxGroup.length;i++){
+        if(isY){
+            if(apprxGroup[i].y>myThreshold){
+                tempList[0].push(apprxGroup[i]);
+            } else {
+                tempList[1].push(apprxGroup[i]);
+            }
+        } else {
+            if(apprxGroup[i].x>myThreshold){
+                tempList[0].push(apprxGroup[i]);
+            } else {
+                tempList[1].push(apprxGroup[i]);
+            }
+        }
+    }
+    return tempList;
+}
+
 function searchEdgeVal(pointList,isMax,isY){ // 最小値や最大値の座標を返す関数
     var max=-9999,min=9999;
     for(var i = 0;i < pointList.length;i++){
@@ -197,7 +243,7 @@ function analyzeByMR(data){ // 次数の範囲内で、xyの入れ替えも加�
     var maxScore=-1, maxW=[], isRev,dim;
     var resultOfMR;
     // 目的変数がy
-    for(var i = 1;i < Math.min(maxDim, data.length-1);i++){
+    for(var i = Math.min(maxDim-2, data.length-2);i < Math.min(maxDim, data.length);i++){
         exp=[],target=[];
         for(var j = 0;j < data.length;j++){
             exp[j]=JSON.parse(JSON.stringify(data[j].xs));
@@ -212,13 +258,12 @@ function analyzeByMR(data){ // 次数の範囲内で、xyの入れ替えも加�
         }
     }
     // 目的変数がx
-    for(var i = 1;i < Math.min(maxDim, data.length); i++){
+    for(var i = Math.min(maxDim-1, data.length-1);i < Math.min(maxDim, data.length); i++){
         exp=[],target=[];
         for(var j = 0;j < data.length;j++){
             exp[j]=JSON.parse(JSON.stringify(data[j].ys));
             target[j]=data[j].x;
         }
-        console.log(exp,target);
         resultOfMR=calcMR(exp,target,i); 
         if(maxScore<resultOfMR.score){
             maxScore=resultOfMR.score;
@@ -235,36 +280,55 @@ function analyzeByMR(data){ // 次数の範囲内で、xyの入れ替えも加�
     }
 }
 
-var maxRep=10000;
-var alpha=0.0; //正則化項
-var eta=0.01;
+var maxRep=1000000;
+var alpha=0; //正則化項
+var eta,eta0=0.1;
 
 function calcMR(exp,target,dim){ // 実際に重回帰分析を行う
     // expは説明変数の配列、targetは目的変数、dimは次元
-    var w=[], k;
+    var w=[];
+
     var y_h, wSum=0;
     var score=0;
     for(var i = 0;i < dim;i++) w[i]=0;
     // target = w[0] * exp[0] + w[1] * exp[1] + ...
     for(var i = 0;i < maxRep; i++){ 
+        eta=eta0*(1-i/maxRep);
         k=Math.floor(Math.random()*exp.length);
         y_h=0;
         for(var j=0;j < dim;j++) y_h+=w[j]*exp[k][j];
         for(var j = 0;j < dim;j++){
             w[j] = w[j] - 2*eta*(y_h-target[k])*exp[k][j];
         }
-        // ここに終了条件を追加
+        if(i%100==0){ //終了条件のチェック
+            y=0;
+            for(var j = 0;j < dim;j++) y+=w[j]*exp[0][j];
+            score+=(y-target[i])*(y-target[i]); // 残差の二乗和
+            if(score<0.01) break;
+        }
     }
+    wSum=0;
+    for(var i = 0;i < dim;i++) wSum+=w[i]*w[i];
     score=0;
     for(var i = 0;i < exp.length;i++) { //スコアの算出
-        y=0, wSum=0;
+        y=0;
         for(var j = 0;j < dim;j++) y+=w[j]*exp[i][j];
-        for(var j = 0;j < dim;j++) wSum+=w[j]*w[j];
         score+=(y-target[i])*(y-target[i]); // 残差の二乗和
         score+=alpha*wSum;
     }
+
     return {
         w: w,
-        score:1/((score+0.01)) // 良いほど低いスコアにする
+        score:1/((score+0.01)) // 良いほど高いスコアにする
+    }
+}
+
+function adjustApproximate(){
+    // xかyの幅が一定以下の図形を消去する
+    for(var i = Objects.polynomials.length-1;i>=0;i--){
+        if(Math.abs(Objects.polynomials[i].M-
+          Math.abs(Objects.polynomials[i].m)) < getXCrd(plyMinLengthThreshold)-getXCrd(0)){
+            Objects.polynomials.splice(i,1);
+        }
     }
 }
